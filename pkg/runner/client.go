@@ -57,8 +57,16 @@ func runClient(cfg *config.Config) error {
 				return
 			}
 
-			go io.Copy(conn, mpconn)
-			go io.Copy(mpconn, conn)
+			go func() {
+				io.Copy(conn, mpconn)
+				conn.Close()
+				mpconn.Close()
+			}()
+			go func() {
+				io.Copy(mpconn, conn)
+				conn.Close()
+				mpconn.Close()
+			}()
 		}()
 	}
 }
