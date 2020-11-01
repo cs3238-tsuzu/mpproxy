@@ -2,7 +2,7 @@ project_name: mpproxy
 env:
   - GO111MODULE=on
 builds:
-  - main: cmd/mpproxy
+  - main: ./cmd/mpproxy
     binary: mpproxy
     ldflags:
       - -s -w
