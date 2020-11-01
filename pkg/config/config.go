@@ -55,7 +55,7 @@ func ReadConfig(ctx context.Context) (*Config, error) {
 
 	cfg := &Config{}
 
-	if err := loader.Load(ctx, &cfg); err != nil {
+	if err := loader.Load(ctx, cfg); err != nil {
 		return nil, fmt.Errorf("failed to laod config: %w", err)
 	}
 
