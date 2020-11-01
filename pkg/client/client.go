@@ -7,12 +7,13 @@ import (
 	"net"
 
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/config"
+	"github.com/cs3238-tsuzu/multipath-proxy/pkg/netutil"
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/nic"
 	"github.com/getlantern/multipath"
 	"github.com/lucas-clemente/quic-go"
 )
 
-// Client serves HTTP proxy server and redirects to the destination server
+// Client establishes multipath connections to the destination server
 type Client struct {
 	sessions []quic.Session
 }
@@ -107,10 +108,12 @@ func (c *Client) newDialers() ([]multipath.Dialer, error) {
 		}
 
 		dialers = append(dialers,
-			newQuicStreamConn(
+			netutil.NewDialer(
 				fmt.Sprintf("%d", i), // TODO: Use another label
-				c.sessions[i],
-				stream,
+				netutil.NewStreamConn(
+					c.sessions[i],
+					stream,
+				),
 			),
 		)
 	}

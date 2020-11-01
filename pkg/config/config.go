@@ -24,6 +24,7 @@ type ClientConfig struct {
 
 // ServerConfig - For server
 type ServerConfig struct {
+	Backend   string   `json:"backend"`
 	Endpoints []string `json:"endpoints"`
 }
 
