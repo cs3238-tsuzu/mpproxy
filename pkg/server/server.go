@@ -36,7 +36,7 @@ func NewServer(endpoints []string) (*Server, error) {
 			return nil, fmt.Errorf("failed to listen on %s: %w", endpoints[i], err)
 		}
 
-		listeners = append(listeners, netutil.NewFlattenListener(listener))
+		listeners[i] = netutil.NewFlattenListener(listener)
 	}
 
 	stats := make([]multipath.StatsTracker, len(listeners))

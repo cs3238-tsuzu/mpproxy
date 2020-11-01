@@ -18,6 +18,7 @@ type flattenListener struct {
 // NewFlattenListener returns a net.Listener for flattened QUIC listener
 func NewFlattenListener(listener quic.Listener) net.Listener {
 	l := &flattenListener{
+		listener: listener,
 		endCh:    make(chan struct{}, 1),
 		errors:   make(chan error, 20),
 		accepted: make(chan net.Conn, 1024),

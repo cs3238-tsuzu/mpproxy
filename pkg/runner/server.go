@@ -21,6 +21,7 @@ func runServer(cfg *config.Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize multipath client: %w", err)
 	}
+	log.Printf("Start listening on %v", cfg.Server.Endpoints)
 
 	for {
 		mpconn, err := listener.Accept()

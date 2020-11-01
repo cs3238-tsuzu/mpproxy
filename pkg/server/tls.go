@@ -58,5 +58,6 @@ func generateTLSConfig() (*tls.Config, error) {
 
 	return &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
+		NextProtos:   []string{"mpproxy"},
 	}, nil
 }

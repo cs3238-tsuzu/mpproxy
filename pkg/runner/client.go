@@ -18,17 +18,19 @@ func runClient(cfg *config.Config) error {
 		return fmt.Errorf("config mode should be client")
 	}
 
-	listener, err := net.Listen("tcp", cfg.Client.Endpoint)
-
-	if err != nil {
-		return fmt.Errorf("failed to listen on %s: %w", cfg.Client.Endpoint, err)
-	}
-
 	client, err := client.NewClient(context.Background(), cfg.Client.Peers)
 
 	if err != nil {
 		return fmt.Errorf("failed to initialize multipath client: %w", err)
 	}
+	log.Printf("Connected to remote peers")
+
+	listener, err := net.Listen("tcp", cfg.Client.Endpoint)
+
+	if err != nil {
+		return fmt.Errorf("failed to listen on %s: %w", cfg.Client.Endpoint, err)
+	}
+	log.Printf("Start listening on %s", cfg.Client.Endpoint)
 
 	for {
 		conn, err := listener.Accept()

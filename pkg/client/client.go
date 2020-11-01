@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/config"
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/netutil"
@@ -28,6 +29,7 @@ func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
 
 	tlsConf := &tls.Config{
 		InsecureSkipVerify: true,
+		NextProtos:         []string{"mpproxy"},
 	}
 
 	config := (*quic.Config)(nil)
@@ -40,7 +42,11 @@ func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
 		session, err := client.conncet(ctx, peer, tlsConf, config)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to connec to %s: %w", peer.Server, err)
+			if strings.Contains(err.Error(), "can't assign requested address") { // IP v4/v6 mismatched
+				continue
+			}
+
+			return nil, fmt.Errorf("failed to connect to %s: %w", peer.Server, err)
 		}
 
 		client.sessions = append(client.sessions, session)
@@ -50,13 +56,13 @@ func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
 }
 
 func (c *Client) conncet(ctx context.Context, peer *nic.Peer, tlsConf *tls.Config, config *quic.Config) (quic.Session, error) {
-	pconn, err := net.ListenUDP("", peer.Address)
+	pconn, err := net.ListenUDP("udp", peer.Address)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on %s for %s: %w", peer.Address, peer.Server, err)
 	}
 
-	addr, err := net.ResolveIPAddr("", peer.Server)
+	addr, err := net.ResolveUDPAddr("udp", peer.Server)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve server address(%s): %w", peer.Server, err)
@@ -103,13 +109,11 @@ func (c *Client) newDialers() ([]multipath.Dialer, error) {
 			)
 		}
 
-		dialers = append(dialers,
-			netutil.NewDialer(
-				fmt.Sprintf("%d", i), // TODO: Use another label
-				netutil.NewStreamConn(
-					c.sessions[i],
-					stream,
-				),
+		dialers[i] = netutil.NewDialer(
+			fmt.Sprintf("%d", i), // TODO: Use another label
+			netutil.NewStreamConn(
+				c.sessions[i],
+				stream,
 			),
 		)
 	}
