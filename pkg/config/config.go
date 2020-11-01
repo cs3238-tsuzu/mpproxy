@@ -10,22 +10,22 @@ import (
 
 // Peer represents one connection from client to server
 type Peer struct {
-	NIC    string `json:"nic"`
-	Listen string `json:"listen"`
-	Server string `json:"server"`
+	NIC    string `json:"nic" yaml:"nic" config:"nic"`
+	Listen string `json:"listen" yaml:"listen" config:"listen"`
+	Server string `json:"server" yaml:"server" config:"server"`
 }
 
 // ClientConfig - For client
 type ClientConfig struct {
-	Endpoint string `json:"endpoint"`
+	Endpoint string `json:"endpoint" yaml:"endpoint" config:"endpoints"`
 
-	Peers []Peer `json:"peers"`
+	Peers []Peer `json:"peers" yaml:"peers" config:"peers"`
 }
 
 // ServerConfig - For server
 type ServerConfig struct {
-	Backend   string   `json:"backend"`
-	Endpoints []string `json:"endpoints"`
+	Backend   string   `json:"backend" yaml:"backend" config:"backend"`
+	Endpoints []string `json:"endpoints" yaml:"endpoints" config:"endpoints"`
 }
 
 const (
@@ -38,10 +38,10 @@ const (
 
 // Config parses all configs from files
 type Config struct {
-	Client ClientConfig `json:"client"`
-	Server ServerConfig `json:"server"`
+	Client ClientConfig `json:"client" yaml:"client"`
+	Server ServerConfig `json:"server" yaml:"server"`
 
-	Mode string `json:"mode"`
+	Mode string `json:"mode" yaml:"mode" config:"mode"`
 }
 
 // ReadConfig loads config from files
