@@ -19,12 +19,8 @@ type Client struct {
 }
 
 // NewClient returns a new client
-func NewClient(ctx context.Context, cfg *config.Config) (*Client, error) {
-	if cfg.Mode != config.ModeClient {
-		return nil, fmt.Errorf("config mode should be client")
-	}
-
-	peers, err := nic.GetPeers(cfg.Client.Peers)
+func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
+	peers, err := nic.GetPeers(cfgPeers)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get peers: %w", err)

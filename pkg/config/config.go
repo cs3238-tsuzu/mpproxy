@@ -17,7 +17,7 @@ type Peer struct {
 
 // ClientConfig - For client
 type ClientConfig struct {
-	HTTPProxy string `json:"http_proxy"`
+	Endpoint string `json:"endpoint"`
 
 	Peers []Peer `json:"peers"`
 }
