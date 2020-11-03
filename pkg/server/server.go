@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/netutil"
 	"github.com/getlantern/multipath"
@@ -21,8 +22,12 @@ var _ net.Listener = &Server{}
 func NewServer(endpoints []string) (*Server, error) {
 	server := &Server{}
 
+	config := &quic.Config{
+		KeepAlive:          true,
+		MaxIncomingStreams: 1 << 60,
+	}
+
 	tlsConf, err := generateTLSConfig()
-	config := (*quic.Config)(nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS config: %w", err)
@@ -36,7 +41,11 @@ func NewServer(endpoints []string) (*Server, error) {
 			return nil, fmt.Errorf("failed to listen on %s: %w", endpoints[i], err)
 		}
 
-		listeners[i] = netutil.NewFlattenListener(listener)
+		listeners[i] = netutil.NewPrefetchListener(
+			netutil.NewFlattenListener(listener),
+			17,
+			10*time.Second,
+		)
 	}
 
 	stats := make([]multipath.StatsTracker, len(listeners))

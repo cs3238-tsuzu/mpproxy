@@ -88,7 +88,7 @@ func (fl *flattenListener) runSession(ctx context.Context, session quic.Session)
 		select {
 		case fl.accepted <- conn:
 		default:
-			fl.errors <- fmt.Errorf("accepted channel is full")
+			fl.saveError(fmt.Errorf("accepted channel is full"))
 
 			conn.Close()
 		}
@@ -99,11 +99,14 @@ func (fl *flattenListener) runSession(ctx context.Context, session quic.Session)
 func (fl *flattenListener) Accept() (net.Conn, error) {
 	select {
 	case <-fl.endCh:
+
 		return nil, ErrClosed
 	default:
 	}
 
-	return <-fl.accepted, nil
+	a := <-fl.accepted
+
+	return a, nil
 }
 
 // Close closes the listener.

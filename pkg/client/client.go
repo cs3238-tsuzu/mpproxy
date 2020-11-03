@@ -12,6 +12,7 @@ import (
 	"github.com/cs3238-tsuzu/multipath-proxy/pkg/nic"
 	"github.com/getlantern/multipath"
 	"github.com/lucas-clemente/quic-go"
+	"golang.org/x/sync/errgroup"
 )
 
 // Client establishes multipath connections to the destination server
@@ -32,7 +33,9 @@ func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
 		NextProtos:         []string{"mpproxy"},
 	}
 
-	config := (*quic.Config)(nil)
+	config := &quic.Config{
+		KeepAlive: true,
+	}
 
 	client := &Client{
 		sessions: make([]quic.Session, 0, len(peers)),
@@ -79,7 +82,7 @@ func (c *Client) conncet(ctx context.Context, peer *nic.Peer, tlsConf *tls.Confi
 
 // NewMultipathConn returns a new multipath client powered by QUIC stream
 func (c *Client) NewMultipathConn(ctx context.Context) (net.Conn, error) {
-	dialers, err := c.newDialers()
+	dialers, err := c.newDialers(ctx)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize errors: %w", err)
@@ -96,26 +99,37 @@ func (c *Client) NewMultipathConn(ctx context.Context) (net.Conn, error) {
 	return conn, nil
 }
 
-func (c *Client) newDialers() ([]multipath.Dialer, error) {
+func (c *Client) newDialers(ctx context.Context) ([]multipath.Dialer, error) {
 	dialers := make([]multipath.Dialer, len(c.sessions))
+	eg, ctx := errgroup.WithContext(ctx)
 
 	for i := range c.sessions {
-		stream, err := c.sessions[i].OpenStream()
+		i := i
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to open stream for %s: %w",
-				c.sessions[i].RemoteAddr().String(),
-				err,
+		eg.Go(func() error {
+			stream, err := c.sessions[i].OpenStreamSync(ctx)
+
+			if err != nil {
+				return fmt.Errorf("failed to open stream for %s: %w",
+					c.sessions[i].RemoteAddr().String(),
+					err,
+				)
+			}
+
+			dialers[i] = netutil.NewDialer(
+				fmt.Sprintf("%d", i), // TODO: Use another label
+				netutil.NewStreamConn(
+					c.sessions[i],
+					stream,
+				),
 			)
-		}
 
-		dialers[i] = netutil.NewDialer(
-			fmt.Sprintf("%d", i), // TODO: Use another label
-			netutil.NewStreamConn(
-				c.sessions[i],
-				stream,
-			),
-		)
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to establish all connections: %w", err)
 	}
 
 	return dialers, nil

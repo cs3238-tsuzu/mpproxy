@@ -35,6 +35,7 @@ func runServer(cfg *config.Config) error {
 
 			return fmt.Errorf("failed to accept new multipath connection: %w", err)
 		}
+		log.Println("Accepted multipath connection")
 
 		go func() {
 			conn, err := net.Dial("tcp", cfg.Server.Backend)

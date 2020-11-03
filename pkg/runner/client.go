@@ -44,6 +44,7 @@ func runClient(cfg *config.Config) error {
 
 			return fmt.Errorf("failed to accept new connection: %w", err)
 		}
+		log.Printf("Accepting new connection from: %s", conn.RemoteAddr())
 
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
