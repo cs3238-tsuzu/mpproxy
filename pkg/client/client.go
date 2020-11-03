@@ -107,7 +107,7 @@ func (c *Client) newDialers(ctx context.Context) ([]multipath.Dialer, error) {
 		i := i
 
 		eg.Go(func() error {
-			stream, err := c.sessions[i].OpenStreamSync(ctx)
+			stream, err := c.sessions[i].OpenStream()
 
 			if err != nil {
 				return fmt.Errorf("failed to open stream for %s: %w",
