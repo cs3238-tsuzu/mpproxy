@@ -49,7 +49,7 @@ func NewClient(ctx context.Context, cfgPeers []config.Peer) (*Client, error) {
 				continue
 			}
 
-			return nil, fmt.Errorf("failed to connect to %s: %w", peer.Server, err)
+			return nil, fmt.Errorf("failed to connect to %s from %s: %w", peer.Server, peer.Address, err)
 		}
 
 		client.sessions = append(client.sessions, session)

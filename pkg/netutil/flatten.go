@@ -3,6 +3,7 @@ package netutil
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/lucas-clemente/quic-go"
@@ -68,6 +69,9 @@ func (fl *flattenListener) start() {
 }
 
 func (fl *flattenListener) runSession(ctx context.Context, session quic.Session) {
+	log.Printf("Started session handler for %s", session.RemoteAddr())
+	defer log.Printf("Stopped session handler for %s", session.RemoteAddr())
+
 	for {
 		stream, err := session.AcceptStream(ctx)
 
