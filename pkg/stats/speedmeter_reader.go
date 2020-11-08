@@ -39,5 +39,5 @@ func (r *speedmeterReader) Read(p []byte) (int, error) {
 
 // Current returns the current transfer speed
 func (r *speedmeterReader) Current() int64 {
-
+	return r.speedmeter.Current()
 }
