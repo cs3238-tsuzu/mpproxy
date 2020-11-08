@@ -20,7 +20,7 @@ type speedmeterWriter struct {
 func NewSpeedmeterWriter(
 	Writer io.Writer,
 	tick time.Duration,
-) io.Writer {
+) SpeedmeterWriter {
 	return &speedmeterWriter{
 		Writer:     Writer,
 		speedmeter: newSpeedmeter(tick),
@@ -29,15 +29,15 @@ func NewSpeedmeterWriter(
 
 var _ SpeedmeterWriter = &speedmeterWriter{}
 
-func (r *speedmeterWriter) Write(p []byte) (int, error) {
-	n, err := r.Writer.Write(p)
+func (w *speedmeterWriter) Write(p []byte) (int, error) {
+	n, err := w.Writer.Write(p)
 
-	r.speedmeter.update(int64(n))
+	w.speedmeter.update(int64(n))
 
 	return n, err
 }
 
 // Current returns the current transfer speed
-func (r *speedmeterWriter) Current() int64 {
-	return r.speedmeter.Current()
+func (w *speedmeterWriter) Current() int64 {
+	return w.speedmeter.Current()
 }
